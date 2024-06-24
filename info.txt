@@ -1,0 +1,3 @@
+name = Quilez™ Laser
+author = Mister SirCode
+description = Version 1.0 - The laser from Quilez Security... Portable version!
