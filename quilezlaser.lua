@@ -99,10 +99,9 @@ end
 
 function drawLaserRecursive(initPos, target, dir, mode, col, brt, dt, depth, defsHit)
 	if target.hit then
-		-- Only do these checks IF IT HITS SOMETHING..... dont want errors :L
+		-- Hit a deflector, recursively fire lasers from a specific point
 		local hitBody = target.shape:GetBody()
 		if hitBody:HasTag('mirror2') then
-			-- TODO: Deflectors
 			if depth <= maxLaserDepth then
 				drawLaser(initPos, target.hitpos, col, brt)
 				local alreadyHit = false
@@ -132,9 +131,15 @@ function drawLaserRecursive(initPos, target, dir, mode, col, brt, dt, depth, def
 				drawLaserRecursive(target.hitpos, newTarget, rot, mode, col, brt, dt, depth + 1, defsHit)
 			end
 		else
+			for i = 1, #vaultDoors do
+				DebugPrint(hitbody)
+				if hitBody.handle == vaultDoors[i] then
+					RemoveTag(vaultDoors[i], "unbreakable")
+				end
+			end
+			-- No mirror or deflector, business as usual
 			drawLaser(initPos, target.hitpos, col, brt)
 			emitSmoke(target.hitpos)
-			-- No mirror or deflector, business as usual
 			if mode == 1 then
 				MakeHole(target.hitpos, 0.5, 0.3, 0.1, true)
 				SpawnFire(target.hitpos)
@@ -210,6 +215,7 @@ function tool:Initialize()
 	laserDist = 0
 	laserHitScale = 0
 	deflectors = FindBodies("mirror2", true)
+	vaultDoors = FindBodies("vaultdoor", true)
 	if GetInt("savegame.mod.laserMode") == 0 then
 		SetInt("savegame.mod.laserMode", 1)
 	end
