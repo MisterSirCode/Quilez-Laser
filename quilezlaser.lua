@@ -23,6 +23,36 @@ local tool = {
 }
 local maxDist = 1000
 local maxLaserDepth = 10
+local deflectors = {}
+local vaultDoors = {}
+
+-- Straight ripped from laser.lua
+function rnd(mi, ma)
+	return math.random(1000)/1000*(ma-mi) + mi
+end
+
+function rndVec(t)
+	return Vec(rnd(-t, t), rnd(-t, t), rnd(-t, t))
+end 
+
+function emitSmoke(pos)
+	ParticleReset()
+	ParticleType("smoke")
+	ParticleColor(0.8, 0.8, 0.8)
+	ParticleRadius(0.2, 0.4)
+	ParticleAlpha(0.5, 0)
+	ParticleDrag(0.5)
+	ParticleGravity(rnd(0.0, 2.0))
+	SpawnParticle(VecAdd(pos, rndVec(0.01)), rndVec(0.1), rnd(1.0, 3.0))
+	ParticleReset()
+	ParticleEmissive(5, 0, "easeout")
+	ParticleGravity(-10)
+	ParticleRadius(0.01, 0.0, "easein")
+	ParticleColor(1, 0.4, 0.3)
+	ParticleTile(4)
+	local vel = VecAdd(Vec(0, 1, 0), rndVec(2.0))
+	SpawnParticle(pos, vel, rnd(1.0, 2.0))
+end
 
 function updateLaserMode()
 	SetInt("savegame.mod.laserMode", GetInt("savegame.mod.laserMode") + 1)
@@ -67,23 +97,43 @@ function ultravioletSpan(v)
 	return (math.random()-0.5)
 end
 
-function drawLaserRecursive(initPos, target, dir, mode, col, brt, dt, depth)
-    local curLaserDepth = depth
+function drawLaserRecursive(initPos, target, dir, mode, col, brt, dt, depth, defsHit)
 	if target.hit then
 		-- Only do these checks IF IT HITS SOMETHING..... dont want errors :L
-		if (target.shape:GetBody()):HasTag('mirror2') then
+		local hitBody = target.shape:GetBody()
+		if hitBody:HasTag('mirror2') then
 			-- TODO: Deflectors
-		elseif (target.shape:GetBody()):HasTag('mirror') then
-			-- Hit a mirror, recursively fire lasers until maximum depth
-			local reflected = dir - target.normal * target.normal:Dot(dir) * 2
-			if curLaserDepth <= maxLaserDepth then
+			if depth <= maxLaserDepth then
 				drawLaser(initPos, target.hitpos, col, brt)
+				local alreadyHit = false
+				for i=1, #defsHit do
+					if defsHit[i] == hitBody then
+						alreadyHit = true
+						break
+					end
+				end
+				if not alreadyHit then
+					defsHit[#defsHit+1] = hitBody
+					local ht = hitBody:GetTransform()
+					local refDir = TransformToParentVec(ht, Vec(0, 0, 1))
+					SetShapeEmissiveScale(target.shape.handle, 1)
+					local reflected = refDir - target.normal * target.normal:Dot(refDir) * 2
+					local newTarget = customRaycast(ht.pos + reflected * 0.1, reflected, maxDist, 1)
+					drawLaserRecursive(ht.pos, newTarget, refDir, mode, col, brt, dt, depth + 1, defsHit)
+				end
+			end
+		elseif hitBody:HasTag('mirror') then
+			-- Hit a mirror, recursively fire lasers until maximum depth
+			if depth <= maxLaserDepth then
+				drawLaser(initPos, target.hitpos, col, brt)
+				local reflected = dir - target.normal * target.normal:Dot(dir) * 2
 				local rot = QuatLookAt(target.hitpos, target.hitpos + target.normal)
 				local newTarget = customRaycast(target.hitpos + reflected * 0.1, reflected, maxDist, 1)
-				drawLaserRecursive(target.hitpos, newTarget, reflected, mode, col, brt, dt, curLaserDepth + 1)
+				drawLaserRecursive(target.hitpos, newTarget, rot, mode, col, brt, dt, depth + 1, defsHit)
 			end
 		else
 			drawLaser(initPos, target.hitpos, col, brt)
+			emitSmoke(target.hitpos)
 			-- No mirror or deflector, business as usual
 			if mode == 1 then
 				MakeHole(target.hitpos, 0.5, 0.3, 0.1, true)
@@ -159,7 +209,7 @@ function tool:Initialize()
 	laserSpriteOg = LoadSprite("MOD/assets/laserog.png")
 	laserDist = 0
 	laserHitScale = 0
-
+	deflectors = FindBodies("mirror2", true)
 	if GetInt("savegame.mod.laserMode") == 0 then
 		SetInt("savegame.mod.laserMode", 1)
 	end
@@ -188,7 +238,7 @@ function tool:Tick(dt)
 			local length = 0;
 			local newCol = {};
 			local dir = (target.hitpos - PLAYER:GetCamera().pos):Normalize()
-			drawLaserRecursive(self:GetBoneGlobalTransform('nozzle').pos, target, dir, mode, col, brt, dt, 0)
+			drawLaserRecursive(self:GetBoneGlobalTransform('nozzle').pos, target, dir, mode, col, brt, dt, 0, {})
 		end
 	end
 end
