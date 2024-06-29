@@ -9,7 +9,7 @@ local laserColors = {
 	{1, 0.6, 0.3},
 	{0.6, 0.3, 1},
 	{0.1, 0, 1}}
-local rightness = {
+local brightness = {
     {8, 5, 5},
     {8, 6, 5},
     {5, 6, 8},
@@ -61,7 +61,8 @@ end
 function drawlaserSprite(pos1, pos2, color, size, depth)
 	if depth < 1 then sprite = laserStartSprite
 	else sprite = laserSprite end
-    visual.drawline(sprite, pos1, pos2, {
+	--DrawLine(pos1, pos2, color[1], color[2], color[3])
+    visual.drawline(laserSprite, pos1, pos2, {
         r = color[1], 
         g = color[2], 
         b = color[3],
@@ -209,15 +210,11 @@ function drawLaserRecursive(initPos, target, dir, mode, col, brt, dt, depth, def
 end
 
 function Tool:Initialize()
-	laserReady = 0
-	laserFireTime = 0
     laserLoop = LoadLoop("MOD/assets/sounds/laser-loop.ogg")
     laserHitLoop = LoadLoop("MOD/assets/sounds/laser-hit-loop.ogg")
     laserSprite = LoadSprite("MOD/assets/images/laser.png")
     laserStartSprite = LoadSprite("MOD/assets/images/laserfade.png")
     laserSpriteOg = LoadSprite("MOD/assets/images/laserog.png")
-	laserDist = 0
-	laserHitScale = 0
 	deflectors = FindBodies("mirror2", true)
 	vaultDoors = FindBodies("vaultdoor", true)
 	if GetInt("savegame.mod.laserMode") == 0 then
@@ -237,7 +234,7 @@ function Tool:Tick(dt)
 	if GetBool('game.player.canusetool') then
         SetToolTransform(Transform(Vec(0.5, -0.4, -0.6), QuatEuler(0, 0, 0)))
         local gripTransform = self:GetBoneGlobalTransform('grip')
-        --SetToolHandPoseWorldTransform(gripTransform)
+        SetToolHandPoseWorldTransform(gripTransform)
 		local target = PLAYER:GetCamera():Raycast(maxDist, -1)
 		local mode = GetInt("savegame.mod.laserMode")
 		if InputPressed("alt") then
@@ -246,8 +243,6 @@ function Tool:Tick(dt)
 		if InputDown("lmb") then
 			local col = laserColors[mode]
 			local brt = brightness[mode]
-			local length = 0;
-			local newCol = {};
 			local dir = (target.hitpos - PLAYER:GetCamera().pos):Normalize()
 			drawLaserRecursive(self:GetBoneGlobalTransform('nozzle').pos, target, dir, mode, col, brt, dt, 0, {}, 0)
 		end
