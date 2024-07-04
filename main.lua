@@ -98,7 +98,6 @@ function ultravioletSpan(v)
 end
 
 function drawLaserRecursive(initPos, target, dir, mode, col, brt, dt, depth, defsHit, defDepth)
-	DebugWatch('target'..depth, target.hitpos)
     if target.hit then
         -- Hit a deflector, recursively fire lasers from a specific point
         local hitBody = target.shape:GetBody()
@@ -201,8 +200,6 @@ function drawLaserRecursive(initPos, target, dir, mode, col, brt, dt, depth, def
 		end
 	else 
 		-- If firing laser at sky... just fire laser... nothing else
-		DebugWatch('loose', 'firing')
-		DebugWatch('positions', {initPos, target.hitpos})
 		DebugCross(initPos)
 		DebugCross(target.hitpos)
         drawLaser(initPos, target.hitpos, col, brt, depth)
@@ -224,17 +221,17 @@ function Tool:Initialize()
 end
 
 function Tool:Animate()
-	local arm = self.armature
 	local target = PLAYER:GetCamera():Raycast(maxDist, -1)
 	local pointer = self:GetBoneGlobalTransform('root'):ToLocal(target.hitpos)
-	arm:SetBoneTransform('Laser', Transform(Vec(0, 0, 0), QuatLookAt(Vec(0, 0, 0), pointer)))
+	self.armature:SetBoneTransform('Laser', Transform(Vec(0, 0, 0), QuatLookAt(Vec(0, 0, 0), pointer)))
 end
 
 function Tool:Tick(dt)
 	if GetBool('game.player.canusetool') then
         SetToolTransform(Transform(Vec(0.5, -0.4, -0.6), QuatEuler(0, 0, 0)))
-        local gripTransform = self:GetBoneGlobalTransform('grip')
-        SetToolHandPoseWorldTransform(gripTransform)
+		-- use self.armature in this case for armature / local space
+        local gripTransform = self.armature:GetBoneGlobalTransform('grip')
+        SetToolHandPoseLocalTransform(gripTransform)
 		local target = PLAYER:GetCamera():Raycast(maxDist, -1)
 		local mode = GetInt("savegame.mod.laserMode")
 		if InputPressed("alt") then
@@ -244,6 +241,7 @@ function Tool:Tick(dt)
 			local col = laserColors[mode]
 			local brt = brightness[mode]
 			local dir = (target.hitpos - PLAYER:GetCamera().pos):Normalize()
+			-- use self in this case for world space
 			drawLaserRecursive(self:GetBoneGlobalTransform('nozzle').pos, target, dir, mode, col, brt, dt, 0, {}, 0)
 		end
 	end
@@ -252,8 +250,8 @@ end
 Tool.model = {
     prefab = [[
 <prefab version="1.6.0">
-	<group name="Laser" pos="0.0 0.0 0.0" rot="0.0 0.0 180.0">
-		<location name="nozzle" pos="0.0 0.0 -0.05"/>
+	<group name="instance=MOD/assets/models/tool.xml" pos="0.0 0.0 0.0" rot="180.0 180.0 0.0">
+		<location name="nozzle" pos="0.0 0.0 -0.25"/>
 		<group name="Chamber" pos="-0.06 -0.025 0.15">
 			<vox pos="0.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5"/>
 			<vox pos="0.05 0.0 0.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5"/>
@@ -313,26 +311,26 @@ Tool.model = {
 			<vox pos="0.0 0.05 0.0" rot="0.0 0.0 -36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5"/>
 		</group>
 		<group name="Lens Rim" pos="-0.077 -0.025 -0.2">
-			<vox pos="-0.05 0.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="-0.030865 -0.046195 0.0" rot="0.0 0.0 22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.00449 -0.08155 0.0" rot="0.0 0.0 45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.050685 -0.100685 0.0" rot="0.0 0.0 67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.100685 -0.100685 0.0" rot="0.0 360.0 90.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.146875 -0.08155 0.0" rot="180.0 180.0 67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.182235 -0.046195 0.0" rot="180.0 180.0 45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.201365 -0.0 0.0" rot="180.0 180.0 22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.201365 0.05 0.0" rot="180.0 180.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.182235 0.096195 0.0" rot="180.0 180.0 -22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.146875 0.13155 0.0" rot="180.0 180.0 -45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.100685 0.150685 0.0" rot="180.0 180.0 -67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.050685 0.150685 0.0" rot="0.0 0.0 -90.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="0.00449 0.13155 0.0" rot="0.0 0.0 -67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="-0.030865 0.096195 0.0" rot="0.0 0.0 -45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="-0.05 0.05 0.0" rot="0.0 0.0 -22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5"/>
-			<vox pos="-0.05 0.0 0.05" rot="90.0 35.0 0.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5"/>
-			<vox pos="0.050685 0.150685 0.05" rot="180.0 90.0 -55.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5"/>
-			<vox pos="0.201365 0.05 0.05" rot="-90.0 145.0 0.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5"/>
-			<vox pos="0.100685 -0.100685 0.05" rot="0.0 90.0 55.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5"/>
+			<vox pos="-0.05 0.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="-0.030865 -0.046195 0.0" rot="0.0 0.0 22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.00449 -0.08155 0.0" rot="0.0 0.0 45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.050685 -0.100685 0.0" rot="0.0 0.0 67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.100685 -0.100685 0.0" rot="0.0 360.0 90.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.146875 -0.08155 0.0" rot="180.0 180.0 67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.182235 -0.046195 0.0" rot="180.0 180.0 45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.201365 -0.0 0.0" rot="180.0 180.0 22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.201365 0.05 0.0" rot="180.0 180.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.182235 0.096195 0.0" rot="180.0 180.0 -22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.146875 0.13155 0.0" rot="180.0 180.0 -45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.100685 0.150685 0.0" rot="180.0 180.0 -67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.050685 0.150685 0.0" rot="0.0 0.0 -90.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.00449 0.13155 0.0" rot="0.0 0.0 -67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="-0.030865 0.096195 0.0" rot="0.0 0.0 -45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="-0.05 0.05 0.0" rot="0.0 0.0 -22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="-0.05 0.0 0.05" rot="90.0 35.0 0.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.050685 0.150685 0.05" rot="180.0 90.0 -55.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.201365 0.05 0.05" rot="-90.0 145.0 0.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5" pbr="0.8 0.8 1.0 0"/>
+			<vox pos="0.100685 -0.100685 0.05" rot="0.0 90.0 55.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5" pbr="0.8 0.8 1.0 0"/>
 		</group>
 		<group name="Handle" pos="-0.025 0.0 0.25">
 			<vox rot="160.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="handlebit" scale="0.5"/>
