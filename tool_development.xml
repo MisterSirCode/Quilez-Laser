@@ -1,4 +1,4 @@
 <scene version="1.6.0">
-	<instance pos="0.0 0.0 0.0" rot="-180.0 -180.0 0.0" file="MOD/assets/models/tool.xml"/>
+	<instance pos="0.0 0.0 0.0" rot="180.0 180.0 0.0" file="MOD/assets/models/tool.xml"/>
 </scene>
 
