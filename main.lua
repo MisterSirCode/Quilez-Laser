@@ -133,9 +133,8 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
             if depth <= maxLaserDepth then
                 drawLaser(innerPos, initPos, target.hitpos, col, brt, depth)
                 local reflected = dir - target.normal * target.normal:Dot(dir) * 2
-                local rot = QuatLookAt(target.hitpos, target.hitpos + target.normal)
                 local newTarget = customRaycast(target.hitpos + reflected * 0.1, reflected, maxDist, 1)
-                drawLaserRecursive(false, target.hitpos, newTarget, rot, mode, col, brt, dt, depth + 1, defsHit, defDepth)
+                drawLaserRecursive(false, target.hitpos, newTarget, reflected, mode, col, brt, dt, depth + 1, defsHit, defDepth)
             end
         else
             for i = 1, #vaultDoors do
@@ -252,10 +251,12 @@ function Tool:Tick(dt)
 	end
 end
 
+-- REMEMBER: Set main group name to Laser!
+
 Tool.model = {
     prefab = [[
 <prefab version="1.6.0">
-	<group name="instance=MOD/assets/models/tool.xml" pos="0.0 0.0 0.0" rot="-180.0 -180.0 0.0">
+	<group name="Laser" pos="0.0 0.0 0.0" rot="-180.0 -180.0 0.0">
 		<location name="nozzle" pos="0.0 0.0 -0.25"/>
 		<location name="inner" pos="0.0 0.0 -0.05"/>
 		<group name="Chamber" pos="-0.06 -0.025 0.15">
