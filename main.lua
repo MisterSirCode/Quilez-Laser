@@ -255,7 +255,7 @@ end
 Tool.model = {
     prefab = [[
 <prefab version="1.6.0">
-	<group name="instance=MOD/assets/models/tool.xml" pos="0.0 0.0 0.0" rot="180.0 180.0 0.0">
+	<group name="instance=MOD/assets/models/tool.xml" pos="0.0 0.0 0.0" rot="-180.0 -180.0 0.0">
 		<location name="nozzle" pos="0.0 0.0 -0.25"/>
 		<location name="inner" pos="0.0 0.0 -0.05"/>
 		<group name="Chamber" pos="-0.06 -0.025 0.15">
@@ -342,7 +342,7 @@ Tool.model = {
 			<vox rot="160.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="handlebit" scale="0.5" pbr="0.1 1 1 0"/>
 			<vox pos="0.0 0.02 0.04" rot="170.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="handlebit" scale="0.5" pbr="0.1 1 1 0"/>
 		</group>
-		<location name="grip" pos="0.0 -0.15 0.35"/>
+		<location name="grip" pos="0.0 -0.15 0.35" rot="0 90 0"/>
 		<group name="Glowy Bits"/>
 		<group name="Lens" pos="0.0 -0.1 -0.2">
 			<vox pos="0.0 0.0 0.01" file="MOD/assets/models/tool.vox" object="lens" scale="0.5" color="1 1 1 0.2" pbr="0.1 1.0 0.1 0"/>
