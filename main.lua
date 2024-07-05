@@ -234,8 +234,10 @@ function Tool:Tick(dt)
 	if GetBool('game.player.canusetool') then
         SetToolTransform(Transform(Vec(0.5, -0.4, -0.6), QuatEuler(0, 0, 0)))
 		-- use self.armature in this case for armature / local space
-        local gripTransform = self.armature:GetBoneGlobalTransform('grip')
-        SetToolHandPoseLocalTransform(gripTransform)
+		if GetVersion() == "1.6.0" then
+			local gripTransform = self.armature:GetBoneGlobalTransform('grip')
+			SetToolHandPoseLocalTransform(gripTransform)
+		end
 		local target = PLAYER:GetCamera():Raycast(maxDist, -1)
 		local mode = GetInt("savegame.mod.laserMode")
 		if InputPressed("alt") then
