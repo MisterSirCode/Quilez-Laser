@@ -106,6 +106,7 @@ end
 
 function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, depth, defsHit, defDepth)
     if target.hit then
+		-- PlayLoop(laserHitLoop, target.hitPoint, 0.5)
         -- Hit a deflector, recursively fire lasers from a specific point
         local hitBody = target.shape:GetBody()
         if hitBody:HasTag('mirror2') then
@@ -213,6 +214,7 @@ end
 function Tool:Initialize()
     laserLoop = LoadLoop("MOD/assets/sounds/laser-loop.ogg")
     laserHitLoop = LoadLoop("MOD/assets/sounds/laser-hit-loop.ogg")
+	laserHitSound = LoadSound("OD/assets/sounds/spark0.ogg")
     laserSprite = LoadSprite("MOD/assets/images/laser.png")
     laserStartSprite = LoadSprite("MOD/assets/images/laserfade.png")
     laserSpriteOg = LoadSprite("MOD/assets/images/laserog.png")
@@ -244,6 +246,7 @@ function Tool:Tick(dt)
 			updateLaserMode()
 		end
 		if InputDown("lmb") then
+			PlayLoop(laserLoop, PLAYER:GetCamera().pos, 2)
 			local col = laserColors[mode]
 			local brt = brightness[mode]
 			local dir = (target.hitpos - PLAYER:GetCamera().pos):Normalize()
