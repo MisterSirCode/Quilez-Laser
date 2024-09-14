@@ -230,13 +230,10 @@ function Tool:Animate()
 	local target = PLAYER:GetCamera():Raycast(maxDist, -1)
 	local pointer = self:GetBoneGlobalTransform('root'):ToLocal(target.hitpos)
 	self.armature:SetBoneTransform('Laser', Transform(Vec(0, 0, 0), QuatLookAt(Vec(0, 0, 0), pointer)))
-end
-
-function Tool:Tick(dt)
 	if GetBool('game.player.canusetool') then
         SetToolTransform(Transform(Vec(0.5, -0.4, -0.6), QuatEuler(0, 0, 0)))
 		-- use self.armature in this case for armature / local space
-		if GetVersion() == "1.6.0" then
+		if GetVersion() ~= "1.5.4" and GetVersion() ~= "1.4.0" then
 			local gripTransform = self.armature:GetBoneGlobalTransform('grip')
 			SetToolHandPoseLocalTransform(gripTransform)
 		end
@@ -254,6 +251,9 @@ function Tool:Tick(dt)
 			drawLaserRecursive(self:GetBoneGlobalTransform('inner').pos, self:GetBoneGlobalTransform('nozzle').pos, target, dir, mode, col, brt, dt, 0, {}, 0)
 		end
 	end
+end
+
+function Tool:Tick(dt)
 end
 
 -- REMEMBER: Set main group name to Laser!
