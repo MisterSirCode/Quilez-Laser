@@ -4,8 +4,6 @@
 
 [h1]7/4/24 - VERSION 5.0 IS OUT! Revamped entire mod, updated for 1.6, redid entire model[/h1]
 
-[h1]The original / legacy version is located below[/h1]
+[hr][/hr]
 
-(For those who dont like my new revamped UMF version)
-
-https://steamcommunity.com/sharedfiles/filedetails/?id=2779544300
+Huge credit and thanks to [url=https://steamcommunity.com/id/Thomasims]Thomasims[/url] for UMF (Unofficial Modding Framework) as well as for general assistance in development!

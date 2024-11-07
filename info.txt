@@ -1,3 +1,4 @@
 name = Quilez™ Laser V5
 author = MisterSirCode, Thomasims
-description = Version 5.0 - The laser from Quilez Security... in your hands! Chief Scientist Monty Quilez has yet to approve this experimental device for use!
+description = [noupload] Version 5.0 - The laser from Quilez Security... in your hands! Chief Scientist Monty Quilez has yet to approve this experimental device for use!
+tags = tool
