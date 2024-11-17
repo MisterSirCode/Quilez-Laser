@@ -1,5 +1,8 @@
-#include 'umf_complete_c.lua'
+#include "umf_complete_c.lua"
 
+-- DO NOT MESS WITH INCLUDE FORMATTING OR QUOTATIONS. EVER.
+
+-- Main Settings and Defaults
 local hitGlass = true
 local breakVaults = true
 local maxDist = 1000
@@ -9,6 +12,8 @@ local vaultDoors = {}
 local innerBeam = {
 	{0.8, 0.8, 0.8},
 	{2, 2, 4}}
+
+-- If you wish to add custom laser modes, add their Visual settings here, and then the specific functionality in the functions below.
 local laserColors = {
 	{1, 0.3, 0.3},
 	{1, 0.6, 0.3},
@@ -25,10 +30,12 @@ local laserNames = {
 	'Pressurized Cold Plasma Laser',
 	'Gamma Ray Burst Laser'
 }
+
+-- Technical
 local key = 'savegame.mod.quilez_laser.'
 local Tool = {
     printname = 'Quilez™ Laser',
-    group = 6
+    group = 2
 }
 
 function rnd(mi, ma)
@@ -59,9 +66,9 @@ function emitSmoke(pos)
 end
 
 function updateLaserMode()
-	SetInt('savegame.mod.laserMode', GetInt('savegame.mod.laserMode') + 1)
-	if (GetInt('savegame.mod.laserMode') > #laserNames) then
-		SetInt('savegame.mod.laserMode', 1)
+	SetInt(key..'laserMode', GetInt(key..'laserMode') + 1)
+	if (GetInt(key..'laserMode') > #laserNames) then
+		SetInt(key..'laserMode', 1)
 	end
 end
 
@@ -129,7 +136,7 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
                     local refDir = TransformToParentVec(ht, Vec(0, 0, 1))
                     SetShapeEmissiveScale(target.shape.handle, 1)
                     local reflected = refDir - target.normal * target.normal:Dot(refDir) * 2
-                    local newTarget = customRaycast(ht.pos + reflected * 0.1, reflected, maxDist, 1)
+                    local newTarget = customRaycast(ht.pos + reflected * 0.1, reflected, maxDist, 0, not hitGlass)
                     drawLaserRecursive(false, ht.pos, newTarget, refDir, mode, col, brt, dt, 0, defsHit, defDepth + 1)
                 end
             end
@@ -138,12 +145,12 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
             if depth <= maxLaserDepth then
                 drawLaser(innerPos, initPos, target.hitpos, col, brt, depth)
                 local reflected = dir - target.normal * target.normal:Dot(dir) * 2
-                local newTarget = customRaycast(target.hitpos + reflected * 0.1, reflected, maxDist, 1)
+                local newTarget = customRaycast(target.hitpos + reflected * 0.1, reflected, maxDist, 0, not hitGlass)
                 drawLaserRecursive(false, target.hitpos, newTarget, reflected, mode, col, brt, dt, depth + 1, defsHit, defDepth)
             end
         else
             for i = 1, #vaultDoors do
-                if hitBody.handle == vaultDoors[i] && breakVaults then
+                if hitBody.handle == vaultDoors[i] and breakVaults then
                     RemoveTag(vaultDoors[i], 'unbreakable')
                 end
             end
@@ -235,14 +242,14 @@ function Tool:Initialize()
         SetInt(key..'maxLaserDist', 1000)
         SetInt(key..'maxRecursion', 20)
     end
-	hitGlass = GetBool(key..'breaksVaults')
+	hitGlass = GetBool(key..'hitGlass')
 	breakVaults = GetBool(key..'breakVaults')
 	maxDist = GetInt(key..'maxLaserDist')
 	maxLaserDepth = GetInt(key..'maxRecursion')
 end
 
 function Tool:Animate()
-	local target = PLAYER:GetCamera():Raycast(maxDist, -1)
+	local target = PLAYER:GetCamera():Raycast(maxDist, -1, 0, not hitGlass)
 	local pointer = self:GetBoneGlobalTransform('root'):ToLocal(target.hitpos)
 	self.armature:SetBoneTransform('Laser', Transform(Vec(0, 0, 0), QuatLookAt(Vec(0, 0, 0), pointer)))
 	if GetBool('game.player.canusetool') then
@@ -252,8 +259,8 @@ function Tool:Animate()
 			local gripTransform = self.armature:GetBoneGlobalTransform('grip')
 			SetToolHandPoseLocalTransform(gripTransform)
 		end
-		local target = PLAYER:GetCamera():Raycast(maxDist, -1)
-		local mode = GetInt('savegame.mod.laserMode')
+		local target = PLAYER:GetCamera():Raycast(maxDist, -1, 0, not hitGlass)
+		local mode = GetInt(key..'laserMode')
 		if InputPressed('alt') then
 			updateLaserMode()
 		end
@@ -377,7 +384,7 @@ Tool.model = {
 RegisterToolUMF('quilezlaser', Tool)
 
 function draw()
-	local mode = GetInt('savegame.mod.laserMode')
+	local mode = GetInt(key..'laserMode')
 	if GetString('game.player.tool') == 'quilezlaser' then
         UiAlign('center bottom')
         UiTextAlignment('center middle')
