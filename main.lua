@@ -33,9 +33,17 @@ local laserNames = {
 
 -- Technical
 local key = 'savegame.mod.quilez_laser.'
+if not GetBool(key..'everOpened') then
+	SetBool(key..'everOpened', true)
+	SetBool(key..'hitGlass', true)
+	SetBool(key..'breakVaults', true)
+	SetInt(key..'maxLaserDist', 1000)
+	SetInt(key..'maxRecursion', 20)
+	SetInt(key..'toolTab', 6)
+end
 local Tool = {
     printname = 'Quilez™ Laser',
-    group = 2
+    group = GetInt(key..'toolTab')
 }
 
 function rnd(mi, ma)
@@ -235,13 +243,6 @@ function Tool:Initialize()
 		SetInt(key..'laserMode', 1)
 	end
 	SetString('game.tool.quilezlaser.ammo.display', '')
-    if not GetBool(key..'everOpened') then
-        SetBool(key..'everOpened', true)
-        SetBool(key..'hitGlass', true)
-        SetBool(key..'breakVaults', true)
-        SetInt(key..'maxLaserDist', 1000)
-        SetInt(key..'maxRecursion', 20)
-    end
 	hitGlass = GetBool(key..'hitGlass')
 	breakVaults = GetBool(key..'breakVaults')
 	maxDist = GetInt(key..'maxLaserDist')
