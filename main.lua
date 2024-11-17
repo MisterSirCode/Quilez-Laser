@@ -1,7 +1,9 @@
-#include "umf_complete_c.lua"
+#include 'umf_complete_c.lua'
 
-local maxLaserDepth = 10
+local hitGlass = true
+local breakVaults = true
 local maxDist = 1000
+local maxLaserDepth = 20
 local deflectors = {}
 local vaultDoors = {}
 local innerBeam = {
@@ -18,10 +20,12 @@ local brightness = {
     {5, 6, 8},
 	{4, 2, 10}}
 local laserNames = {
-	"Classic Quilez Plasma Laser",
-	"Low Power Infrared Laser",
-	"Pressurized Cold Plasma Laser",
-	"Gamma Ray Burst Laser"}
+	'Classic Quilez Plasma Laser',
+	'Low Power Infrared Laser',
+	'Pressurized Cold Plasma Laser',
+	'Gamma Ray Burst Laser'
+}
+local key = 'savegame.mod.quilez_laser.'
 local Tool = {
     printname = 'Quilez™ Laser',
     group = 6
@@ -37,7 +41,7 @@ end
 
 function emitSmoke(pos)
 	ParticleReset()
-	ParticleType("smoke")
+	ParticleType('smoke')
 	ParticleColor(0.8, 0.8, 0.8)
 	ParticleRadius(0.2, 0.4)
 	ParticleAlpha(0.5, 0)
@@ -45,9 +49,9 @@ function emitSmoke(pos)
 	ParticleGravity(rnd(0.0, 2.0))
 	SpawnParticle(VecAdd(pos, rndVec(0.01)), rndVec(0.1), rnd(1.0, 3.0))
 	ParticleReset()
-	ParticleEmissive(5, 0, "easeout")
+	ParticleEmissive(5, 0, 'easeout')
 	ParticleGravity(-10)
-	ParticleRadius(0.01, 0.0, "easein")
+	ParticleRadius(0.01, 0.0, 'easein')
 	ParticleColor(1, 0.4, 0.3)
 	ParticleTile(4)
 	local vel = VecAdd(Vec(0, 1, 0), rndVec(2.0))
@@ -55,9 +59,9 @@ function emitSmoke(pos)
 end
 
 function updateLaserMode()
-	SetInt("savegame.mod.laserMode", GetInt("savegame.mod.laserMode") + 1)
-	if (GetInt("savegame.mod.laserMode") > #laserNames) then
-		SetInt("savegame.mod.laserMode", 1)
+	SetInt('savegame.mod.laserMode', GetInt('savegame.mod.laserMode') + 1)
+	if (GetInt('savegame.mod.laserMode') > #laserNames) then
+		SetInt('savegame.mod.laserMode', 1)
 	end
 end
 
@@ -139,8 +143,8 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
             end
         else
             for i = 1, #vaultDoors do
-                if hitBody.handle == vaultDoors[i] then
-                    RemoveTag(vaultDoors[i], "unbreakable")
+                if hitBody.handle == vaultDoors[i] && breakVaults then
+                    RemoveTag(vaultDoors[i], 'unbreakable')
                 end
             end
 			-- No mirror or deflector, business as usual
@@ -177,13 +181,13 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
 				ParticleRadius(0.05)
 				ParticleGravity(-10.0)
 				ParticleDrag(0)
-				ParticleEmissive(math.random(2, 5), 0, "easeout")
+				ParticleEmissive(math.random(2, 5), 0, 'easeout')
 				ParticleTile(3)
 				for i=1, 6 do
 					curPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 0.6))
 					MakeHole(curPos, 0.2, 0.1, 0, true)
 					SpawnFire(curPos)
-					Paint(curPos, 0.2, "explosion", 0.5)
+					Paint(curPos, 0.2, 'explosion', 0.5)
 					local v = Vec(math.random(-5,5),math.random(-5,5),math.random(-10,5))
 					SpawnParticle(curPos, v, 3)
 				end
@@ -191,7 +195,7 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
 					curPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 2.0))
 					MakeHole(curPos, 0.1, 0, 0, true)
 					SpawnFire(curPos)
-					Paint(curPos, 0.1, "explosion", 0.5)
+					Paint(curPos, 0.1, 'explosion', 0.5)
 					local v = Vec(math.random(-5,5),math.random(-5,5),math.random(-10,5))
 					ParticleRadius(0.025)
 					SpawnParticle(curPos, v, 3)
@@ -199,7 +203,7 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
 				for i=1, 32 do
 					curPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 4.0))
 					SpawnFire(curPos)
-					Paint(curPos, 0.2, "explosion", 0.5)
+					Paint(curPos, 0.2, 'explosion', 0.5)
 					ParticleRadius(0.01)
 					SpawnParticle(curPos, v, 3)
 				end
@@ -212,18 +216,29 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
 end
 
 function Tool:Initialize()
-    laserLoop = LoadLoop("MOD/assets/sounds/laser-loop.ogg")
-    laserHitLoop = LoadLoop("MOD/assets/sounds/laser-hit-loop.ogg")
-	laserHitSound = LoadSound("OD/assets/sounds/spark0.ogg")
-    laserSprite = LoadSprite("MOD/assets/images/laser.png")
-    laserStartSprite = LoadSprite("MOD/assets/images/laserfade.png")
-    laserSpriteOg = LoadSprite("MOD/assets/images/laserog.png")
-	deflectors = FindBodies("mirror2", true)
-	vaultDoors = FindBodies("vaultdoor", true)
-	if GetInt("savegame.mod.laserMode") == 0 then
-		SetInt("savegame.mod.laserMode", 1)
+    laserLoop = LoadLoop('MOD/assets/sounds/laser-loop.ogg')
+    laserHitLoop = LoadLoop('MOD/assets/sounds/laser-hit-loop.ogg')
+	laserHitSound = LoadSound('OD/assets/sounds/spark0.ogg')
+    laserSprite = LoadSprite('MOD/assets/images/laser.png')
+    laserStartSprite = LoadSprite('MOD/assets/images/laserfade.png')
+    laserSpriteOg = LoadSprite('MOD/assets/images/laserog.png')
+	deflectors = FindBodies('mirror2', true)
+	vaultDoors = FindBodies('vaultdoor', true)
+	if GetInt(key..'laserMode') == 0 then
+		SetInt(key..'laserMode', 1)
 	end
-	SetString("game.tool.quilezlaser.ammo.display", "")
+	SetString('game.tool.quilezlaser.ammo.display', '')
+    if not GetBool(key..'everOpened') then
+        SetBool(key..'everOpened', true)
+        SetBool(key..'hitGlass', true)
+        SetBool(key..'breakVaults', true)
+        SetInt(key..'maxLaserDist', 1000)
+        SetInt(key..'maxRecursion', 20)
+    end
+	hitGlass = GetBool(key..'breaksVaults')
+	breakVaults = GetBool(key..'breakVaults')
+	maxDist = GetInt(key..'maxLaserDist')
+	maxLaserDepth = GetInt(key..'maxRecursion')
 end
 
 function Tool:Animate()
@@ -233,16 +248,16 @@ function Tool:Animate()
 	if GetBool('game.player.canusetool') then
         SetToolTransform(Transform(Vec(0.5, -0.4, -0.6), QuatEuler(0, 0, 0)))
 		-- use self.armature in this case for armature / local space
-		if GetVersion() ~= "1.5.4" and GetVersion() ~= "1.4.0" then
+		if GetVersion() ~= '1.5.4' and GetVersion() ~= '1.4.0' then
 			local gripTransform = self.armature:GetBoneGlobalTransform('grip')
 			SetToolHandPoseLocalTransform(gripTransform)
 		end
 		local target = PLAYER:GetCamera():Raycast(maxDist, -1)
-		local mode = GetInt("savegame.mod.laserMode")
-		if InputPressed("alt") then
+		local mode = GetInt('savegame.mod.laserMode')
+		if InputPressed('alt') then
 			updateLaserMode()
 		end
-		if InputDown("lmb") then
+		if InputDown('lmb') then
 			PlayLoop(laserLoop, PLAYER:GetCamera().pos, 2)
 			local col = laserColors[mode]
 			local brt = brightness[mode]
@@ -260,99 +275,99 @@ end
 
 Tool.model = {
     prefab = [[
-<prefab version="1.6.0">
-	<group name="Laser" pos="0.0 0.0 0.0" rot="-180.0 -180.0 0.0">
-		<location name="nozzle" pos="0.0 0.0 -0.25"/>
-		<location name="inner" pos="0.0 0.0 -0.05"/>
-		<group name="Chamber" pos="-0.06 -0.025 0.15">
-			<vox pos="0.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.05 0.0 0.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.035355 0.085355 0.0" rot="0.0 0.0 -90.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.085355 0.085355 0.0" rot="180.0 180.0 -45.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.12071 0.05 0.0" rot="-180.0 -180.0 0.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.12071 0.0 0.0" rot="180.0 -180.0 45.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.085355 -0.035355 0.0" rot="0.0 -360.0 90.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.035355 -0.035355 0.0" rot="0.0 0.0 45.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.0 0.05 0.0" rot="0.0 0.0 -45.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
+<prefab version='1.6.0'>
+	<group name='Laser' pos='0.0 0.0 0.0' rot='-180.0 -180.0 0.0'>
+		<location name='nozzle' pos='0.0 0.0 -0.25'/>
+		<location name='inner' pos='0.0 0.0 -0.05'/>
+		<group name='Chamber' pos='-0.06 -0.025 0.15'>
+			<vox pos='0.0 0.0 0.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.05 0.0 0.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.035355 0.085355 0.0' rot='0.0 0.0 -90.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.085355 0.085355 0.0' rot='180.0 180.0 -45.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.12071 0.05 0.0' rot='-180.0 -180.0 0.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.12071 0.0 0.0' rot='180.0 -180.0 45.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.085355 -0.035355 0.0' rot='0.0 -360.0 90.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.035355 -0.035355 0.0' rot='0.0 0.0 45.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.0 0.05 0.0' rot='0.0 0.0 -45.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
 		</group>
-		<group name="Chamber" pos="0.0 0.0 0.15" rot="0.0 0.0 22.5">
-			<vox pos="-0.06 -0.025 0.0" rot="0.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="-0.01 -0.025 0.0" rot="0.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="-0.024645 0.060355 0.0" rot="0.0 0.0 -90.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.025355 0.060355 0.0" rot="-180.0 -180.0 -45.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.06071 0.025 0.0" rot="180.0 180.0 0.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.06071 -0.025 0.0" rot="-180.0 180.0 45.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.025355 -0.060355 0.0" rot="0.0 360.0 90.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="-0.024645 -0.060355 0.0" rot="0.0 0.0 45.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="-0.06 0.025 0.0" rot="0.0 0.0 -45.0" file="MOD/assets/models/tool.vox" object="chamberbit" scale="0.5" pbr="0.1 1 1 0"/>
+		<group name='Chamber' pos='0.0 0.0 0.15' rot='0.0 0.0 22.5'>
+			<vox pos='-0.06 -0.025 0.0' rot='0.0 0.0 0.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='-0.01 -0.025 0.0' rot='0.0 0.0 0.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='-0.024645 0.060355 0.0' rot='0.0 0.0 -90.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.025355 0.060355 0.0' rot='-180.0 -180.0 -45.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.06071 0.025 0.0' rot='180.0 180.0 0.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.06071 -0.025 0.0' rot='-180.0 180.0 45.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.025355 -0.060355 0.0' rot='0.0 360.0 90.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='-0.024645 -0.060355 0.0' rot='0.0 0.0 45.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='-0.06 0.025 0.0' rot='0.0 0.0 -45.0' file='MOD/assets/models/tool.vox' object='chamberbit' scale='0.5' pbr='0.1 1 1 0'/>
 		</group>
-		<group name="Rim" pos="-0.077 -0.025 -0.05">
-			<vox file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.02939 -0.04045 0.0" rot="0.0 0.0 36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.07694 -0.0559 0.0" rot="0.0 0.0 72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.124495 -0.04045 0.0" rot="-180.0 -180.0 72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.153885 0.0 0.0" rot="-180.0 -180.0 36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.153885 0.05 0.0" rot="-180.0 -180.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.124495 0.09045 0.0" rot="-180.0 -180.0 -36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.07694 0.1059 0.0" rot="-180.0 -180.0 -72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.02939 0.09045 0.0" rot="0.0 0.0 -72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.0 0.05 0.0" rot="0.0 0.0 -36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
+		<group name='Rim' pos='-0.077 -0.025 -0.05'>
+			<vox file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.02939 -0.04045 0.0' rot='0.0 0.0 36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.07694 -0.0559 0.0' rot='0.0 0.0 72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.124495 -0.04045 0.0' rot='-180.0 -180.0 72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.153885 0.0 0.0' rot='-180.0 -180.0 36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.153885 0.05 0.0' rot='-180.0 -180.0 0.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.124495 0.09045 0.0' rot='-180.0 -180.0 -36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.07694 0.1059 0.0' rot='-180.0 -180.0 -72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.02939 0.09045 0.0' rot='0.0 0.0 -72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.0 0.05 0.0' rot='0.0 0.0 -36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
 		</group>
-		<group name="Rim" pos="-0.077 -0.025 0.4">
-			<vox file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.02939 -0.04045 0.0" rot="0.0 0.0 36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.07694 -0.0559 0.0" rot="0.0 0.0 72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.124495 -0.04045 0.0" rot="-180.0 -180.0 72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.153885 0.0 0.0" rot="-180.0 -180.0 36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.153885 0.05 0.0" rot="-180.0 -180.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.124495 0.09045 0.0" rot="-180.0 -180.0 -36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.07694 0.1059 0.0" rot="-180.0 -180.0 -72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.02939 0.09045 0.0" rot="0.0 0.0 -72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.0 0.05 0.0" rot="0.0 0.0 -36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
+		<group name='Rim' pos='-0.077 -0.025 0.4'>
+			<vox file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.02939 -0.04045 0.0' rot='0.0 0.0 36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.07694 -0.0559 0.0' rot='0.0 0.0 72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.124495 -0.04045 0.0' rot='-180.0 -180.0 72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.153885 0.0 0.0' rot='-180.0 -180.0 36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.153885 0.05 0.0' rot='-180.0 -180.0 0.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.124495 0.09045 0.0' rot='-180.0 -180.0 -36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.07694 0.1059 0.0' rot='-180.0 -180.0 -72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.02939 0.09045 0.0' rot='0.0 0.0 -72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.0 0.05 0.0' rot='0.0 0.0 -36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
 		</group>
-		<group name="Rim" pos="-0.077 -0.025 0.175">
-			<vox file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.02939 -0.04045 0.0" rot="0.0 0.0 36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.07694 -0.0559 0.0" rot="0.0 0.0 72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.124495 -0.04045 0.0" rot="-180.0 -180.0 72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.153885 0.0 0.0" rot="-180.0 -180.0 36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.153885 0.05 0.0" rot="-180.0 -180.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.124495 0.09045 0.0" rot="-180.0 -180.0 -36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.07694 0.1059 0.0" rot="-180.0 -180.0 -72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.02939 0.09045 0.0" rot="0.0 0.0 -72.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.0 0.05 0.0" rot="0.0 0.0 -36.0" file="MOD/assets/models/tool.vox" object="rimbit" scale="0.5" pbr="0.3 1 1 0"/>
+		<group name='Rim' pos='-0.077 -0.025 0.175'>
+			<vox file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.02939 -0.04045 0.0' rot='0.0 0.0 36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.07694 -0.0559 0.0' rot='0.0 0.0 72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.124495 -0.04045 0.0' rot='-180.0 -180.0 72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.153885 0.0 0.0' rot='-180.0 -180.0 36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.153885 0.05 0.0' rot='-180.0 -180.0 0.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.124495 0.09045 0.0' rot='-180.0 -180.0 -36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.07694 0.1059 0.0' rot='-180.0 -180.0 -72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.02939 0.09045 0.0' rot='0.0 0.0 -72.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.0 0.05 0.0' rot='0.0 0.0 -36.0' file='MOD/assets/models/tool.vox' object='rimbit' scale='0.5' pbr='0.3 1 1 0'/>
 		</group>
-		<group name="Lens Rim" pos="-0.077 -0.025 -0.2">
-			<vox pos="-0.05 0.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="-0.03087 -0.0462 0.0" rot="0.0 0.0 22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.00449 -0.08155 0.0" rot="0.0 0.0 45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.05068 -0.10069 0.0" rot="0.0 0.0 67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.10069 -0.10069 0.0" rot="0.0 360.0 90.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.14687 -0.08155 0.0" rot="180.0 180.0 67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.18224 -0.0462 0.0" rot="180.0 180.0 45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.20136 0.0 0.0" rot="180.0 180.0 22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.20136 0.05 0.0" rot="180.0 180.0 0.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.18224 0.09619 0.0" rot="180.0 180.0 -22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.14687 0.13155 0.0" rot="180.0 180.0 -45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.10069 0.15068 0.0" rot="180.0 180.0 -67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.05068 0.15068 0.0" rot="0.0 0.0 -90.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.00449 0.13155 0.0" rot="0.0 0.0 -67.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="-0.03087 0.09619 0.0" rot="0.0 0.0 -45.0" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="-0.05 0.05 0.0" rot="0.0 0.0 -22.5" file="MOD/assets/models/tool.vox" object="rimbit2" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="-0.05 0.0 0.05" rot="90.0 35.0 0.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.050685 0.150685 0.05" rot="180.0 90.0 -55.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.201365 0.05 0.05" rot="-90.0 145.0 0.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5" pbr="0.3 1 1 0"/>
-			<vox pos="0.100685 -0.100685 0.05" rot="0.0 90.0 55.0" file="MOD/assets/models/tool.vox" object="clampbit" scale="0.5" pbr="0.3 1 1 0"/>
+		<group name='Lens Rim' pos='-0.077 -0.025 -0.2'>
+			<vox pos='-0.05 0.0 0.0' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='-0.03087 -0.0462 0.0' rot='0.0 0.0 22.5' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.00449 -0.08155 0.0' rot='0.0 0.0 45.0' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.05068 -0.10069 0.0' rot='0.0 0.0 67.5' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.10069 -0.10069 0.0' rot='0.0 360.0 90.0' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.14687 -0.08155 0.0' rot='180.0 180.0 67.5' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.18224 -0.0462 0.0' rot='180.0 180.0 45.0' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.20136 0.0 0.0' rot='180.0 180.0 22.5' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.20136 0.05 0.0' rot='180.0 180.0 0.0' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.18224 0.09619 0.0' rot='180.0 180.0 -22.5' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.14687 0.13155 0.0' rot='180.0 180.0 -45.0' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.10069 0.15068 0.0' rot='180.0 180.0 -67.5' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.05068 0.15068 0.0' rot='0.0 0.0 -90.0' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.00449 0.13155 0.0' rot='0.0 0.0 -67.5' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='-0.03087 0.09619 0.0' rot='0.0 0.0 -45.0' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='-0.05 0.05 0.0' rot='0.0 0.0 -22.5' file='MOD/assets/models/tool.vox' object='rimbit2' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='-0.05 0.0 0.05' rot='90.0 35.0 0.0' file='MOD/assets/models/tool.vox' object='clampbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.050685 0.150685 0.05' rot='180.0 90.0 -55.0' file='MOD/assets/models/tool.vox' object='clampbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.201365 0.05 0.05' rot='-90.0 145.0 0.0' file='MOD/assets/models/tool.vox' object='clampbit' scale='0.5' pbr='0.3 1 1 0'/>
+			<vox pos='0.100685 -0.100685 0.05' rot='0.0 90.0 55.0' file='MOD/assets/models/tool.vox' object='clampbit' scale='0.5' pbr='0.3 1 1 0'/>
 		</group>
-		<group name="Handle" pos="-0.025 0.0 0.25">
-			<vox rot="160.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="handlebit" scale="0.5" pbr="0.1 1 1 0"/>
-			<vox pos="0.0 0.02 0.04" rot="170.0 0.0 0.0" file="MOD/assets/models/tool.vox" object="handlebit" scale="0.5" pbr="0.1 1 1 0"/>
+		<group name='Handle' pos='-0.025 0.0 0.25'>
+			<vox rot='160.0 0.0 0.0' file='MOD/assets/models/tool.vox' object='handlebit' scale='0.5' pbr='0.1 1 1 0'/>
+			<vox pos='0.0 0.02 0.04' rot='170.0 0.0 0.0' file='MOD/assets/models/tool.vox' object='handlebit' scale='0.5' pbr='0.1 1 1 0'/>
 		</group>
-		<location name="grip" pos="0.0 -0.15 0.35" rot="0 90 0"/>
-		<group name="Glowy Bits"/>
-		<group name="Lens" pos="0.0 -0.1 -0.2">
-			<vox pos="0.0 0.0 0.01" file="MOD/assets/models/tool.vox" object="lens" scale="0.5" color="1 1 1 0.2" pbr="0.1 1.0 0.1 0"/>
-			<vox pos="0.0 0.0 0.04" file="MOD/assets/models/tool.vox" object="lens" scale="0.5" color="1 1 1 0.2" pbr="0.1 1.0 0.1 0"/>
+		<location name='grip' pos='0.0 -0.15 0.35' rot='0 90 0'/>
+		<group name='Glowy Bits'/>
+		<group name='Lens' pos='0.0 -0.1 -0.2'>
+			<vox pos='0.0 0.0 0.01' file='MOD/assets/models/tool.vox' object='lens' scale='0.5' color='1 1 1 0.2' pbr='0.1 1.0 0.1 0'/>
+			<vox pos='0.0 0.0 0.04' file='MOD/assets/models/tool.vox' object='lens' scale='0.5' color='1 1 1 0.2' pbr='0.1 1.0 0.1 0'/>
 		</group>
 	</group>
 </prefab>
@@ -362,18 +377,18 @@ Tool.model = {
 RegisterToolUMF('quilezlaser', Tool)
 
 function draw()
-	local mode = GetInt("savegame.mod.laserMode")
-	if GetString("game.player.tool") == "quilezlaser" then
-        UiAlign("center bottom")
-        UiTextAlignment("center middle")
+	local mode = GetInt('savegame.mod.laserMode')
+	if GetString('game.player.tool') == 'quilezlaser' then
+        UiAlign('center bottom')
+        UiTextAlignment('center middle')
         UiTranslate(UiCenter(), UiHeight() - 100)
-        UiFont("bold.ttf", 24)
+        UiFont('bold.ttf', 24)
         UiTextShadow(0, 0, 0, 0.5, 1.5)
         local col = laserColors[mode]
         UiColor(col[1] / 2 + 0.5, col[2] / 2 + 0.5, col[3] / 2 + 0.5)
         UiText(laserNames[mode])
         UiTranslate(0, 30)
-        UiFont("bold.ttf", 16)
-        UiText("Press ALT to Switch Modes")
+        UiFont('bold.ttf', 16)
+        UiText('Press ALT to Switch Modes')
 	end
 end
