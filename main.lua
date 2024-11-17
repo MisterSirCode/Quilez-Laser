@@ -258,7 +258,7 @@ function Tool:Animate()
 		-- use self.armature in this case for armature / local space
 		if GetVersion() ~= '1.5.4' and GetVersion() ~= '1.4.0' then
 			local gripTransform = self.armature:GetBoneGlobalTransform('grip')
-			SetToolHandPoseLocalTransform(gripTransform)
+			SetToolHandPoseLocalTransform(gripTransform, nil)
 		end
 		local target = PLAYER:GetCamera():Raycast(maxDist, -1, 0, not hitGlass)
 		local mode = GetInt(key..'laserMode')
@@ -276,7 +276,24 @@ function Tool:Animate()
 	end
 end
 
-function Tool:Tick(dt)
+-- function Tool:Tick(dt)
+-- end
+
+function draw()
+	local mode = GetInt(key..'laserMode')
+	if GetString('game.player.tool') == 'quilezlaser' then
+        UiAlign('center bottom')
+        UiTextAlignment('center middle')
+        UiTranslate(UiCenter(), UiHeight() - 100)
+        UiFont('bold.ttf', 24)
+        UiTextShadow(0, 0, 0, 0.5, 1.5)
+        local col = laserColors[mode]
+        UiColor(col[1] / 2 + 0.5, col[2] / 2 + 0.5, col[3] / 2 + 0.5)
+        UiText(laserNames[mode])
+        UiTranslate(0, 30)
+        UiFont('bold.ttf', 16)
+        UiText('Press ALT to Switch Modes')
+	end
 end
 
 -- REMEMBER: Set main group name to Laser!
@@ -382,21 +399,5 @@ Tool.model = {
     ]],
 }
 
+-- Final Registration
 RegisterToolUMF('quilezlaser', Tool)
-
-function draw()
-	local mode = GetInt(key..'laserMode')
-	if GetString('game.player.tool') == 'quilezlaser' then
-        UiAlign('center bottom')
-        UiTextAlignment('center middle')
-        UiTranslate(UiCenter(), UiHeight() - 100)
-        UiFont('bold.ttf', 24)
-        UiTextShadow(0, 0, 0, 0.5, 1.5)
-        local col = laserColors[mode]
-        UiColor(col[1] / 2 + 0.5, col[2] / 2 + 0.5, col[3] / 2 + 0.5)
-        UiText(laserNames[mode])
-        UiTranslate(0, 30)
-        UiFont('bold.ttf', 16)
-        UiText('Press ALT to Switch Modes')
-	end
-end
