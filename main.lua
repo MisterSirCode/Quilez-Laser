@@ -17,19 +17,19 @@ local innerBeam = {
 -- If you wish to add custom laser modes, add their Visual settings here, and then the specific functionality in the functions below.
 local laserColors = {
 	{1, 0.3, 0.3},
-	{1, 0.6, 0.3},
-	{0.6, 0.3, 1},
-	{0.1, 0, 1}
+	{0.7, 0.3, 0.0},
+	{0.8, 0.3, 1},
+	{0.1, 0, 1.5}
 }
 local brightness = {
     {8, 5, 5},
-    {8, 6, 5},
-    {5, 6, 8},
-	{4, 2, 10}
+    {3, 2, 1},
+    {5, 5, 7},
+	{4, 2, 15}
 }
 local laserNames = {
 	'Classic Quilez Plasma Laser',
-	'Low Power Infrared Laser',
+	'Superheated Infrared Laser',
 	'Pressurized Cold Plasma Laser',
 	'Gamma Ray Burst Laser'
 }
@@ -202,28 +202,29 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
 				ParticleEmissive(math.random(2, 5), 0, 'easeout')
 				ParticleTile(3)
 				for i=1, 6 do
-					curPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 0.6))
-					MakeHole(curPos, 0.2, 0.1, 0, true)
-					SpawnFire(curPos)
-					Paint(curPos, 0.2, 'explosion', 0.5)
+					local ranPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 0.5))
+					MakeHole(ranPos, 0.2, 0.1, 0.1, true)
+					SpawnFire(ranPos)
+					Paint(ranPos, 0.2, 'explosion', 0.5)
 					local v = Vec(math.random(-5,5),math.random(-5,5),math.random(-10,5))
-					SpawnParticle(curPos, v, 3)
+					SpawnParticle(ranPos, v, 3)
 				end
 				for i=1, 8 do
-					curPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 2.0))
-					MakeHole(curPos, 0.1, 0, 0, true)
-					SpawnFire(curPos)
-					Paint(curPos, 0.1, 'explosion', 0.5)
+					local ranPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 2.0))
+					MakeHole(ranPos, 0.1, 0.1, 0, true)
+					SpawnFire(ranPos)
+					Paint(ranPos, 0.1, 'explosion', 0.5)
 					local v = Vec(math.random(-5,5),math.random(-5,5),math.random(-10,5))
 					ParticleRadius(0.025)
-					SpawnParticle(curPos, v, 3)
+					SpawnParticle(ranPos, v, 3)
 				end
 				for i=1, 32 do
-					curPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 4.0))
-					SpawnFire(curPos)
-					Paint(curPos, 0.2, 'explosion', 0.5)
+					local ranPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 4.0))
+					MakeHole(ranPos, 0.1, 0, 0, true)
+					SpawnFire(ranPos)
+					Paint(ranPos, 0.2, 'explosion', 0.5)
 					ParticleRadius(0.01)
-					SpawnParticle(curPos, v, 3)
+					SpawnParticle(ranPos, v, 3)
 				end
 			end
 		end
