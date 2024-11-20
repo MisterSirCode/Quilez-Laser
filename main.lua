@@ -11,19 +11,22 @@ local deflectors = {}
 local vaultDoors = {}
 local innerBeam = {
 	{0.8, 0.8, 0.8},
-	{2, 2, 4}}
+	{2, 2, 4}
+}
 
 -- If you wish to add custom laser modes, add their Visual settings here, and then the specific functionality in the functions below.
 local laserColors = {
 	{1, 0.3, 0.3},
 	{1, 0.6, 0.3},
 	{0.6, 0.3, 1},
-	{0.1, 0, 1}}
+	{0.1, 0, 1}
+}
 local brightness = {
     {8, 5, 5},
     {8, 6, 5},
     {5, 6, 8},
-	{4, 2, 10}}
+	{4, 2, 10}
+}
 local laserNames = {
 	'Classic Quilez Plasma Laser',
 	'Low Power Infrared Laser',
@@ -144,7 +147,7 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
                     local refDir = TransformToParentVec(ht, Vec(0, 0, 1))
                     SetShapeEmissiveScale(target.shape.handle, 1)
                     local reflected = refDir - target.normal * target.normal:Dot(refDir) * 2
-                    local newTarget = customRaycast(ht.pos + reflected * 0.1, reflected, maxDist, 0, not hitGlass)
+                    local newTarget = customRaycast(ht.pos + reflected * 0.1, reflected, maxDist, 1, not hitGlass)
                     drawLaserRecursive(false, ht.pos, newTarget, refDir, mode, col, brt, dt, 0, defsHit, defDepth + 1)
                 end
             end
@@ -153,7 +156,7 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
             if depth <= maxLaserDepth then
                 drawLaser(innerPos, initPos, target.hitpos, col, brt, depth)
                 local reflected = dir - target.normal * target.normal:Dot(dir) * 2
-                local newTarget = customRaycast(target.hitpos + reflected * 0.1, reflected, maxDist, 0, not hitGlass)
+                local newTarget = customRaycast(target.hitpos + reflected * 0.1, reflected, maxDist, 1, not hitGlass)
                 drawLaserRecursive(false, target.hitpos, newTarget, reflected, mode, col, brt, dt, depth + 1, defsHit, defDepth)
             end
         else
