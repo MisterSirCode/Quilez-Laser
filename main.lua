@@ -145,6 +145,7 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
                     defsHit[#defsHit+1] = hitBody
                     local ht = hitBody:GetTransform()
                     local refDir = TransformToParentVec(ht, Vec(0, 0, 1))
+					SetTagValue(target.shape.handle, "state", 1)
                     SetShapeEmissiveScale(target.shape.handle, 1)
                     local reflected = refDir - target.normal * target.normal:Dot(refDir) * 2
                     local newTarget = customRaycast(ht.pos + reflected * 0.1, reflected, maxDist, 1, not hitGlass)
@@ -255,7 +256,7 @@ function Tool:Initialize()
 end
 
 -- Detect for deflectors spawned
-function RecieveEvent(file)
+function EntitySpawned(file)
     deflectors = FindBodies('mirror2', true)
 end
 
