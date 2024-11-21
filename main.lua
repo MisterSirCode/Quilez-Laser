@@ -235,6 +235,7 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
 end
 
 function Tool:Initialize()
+    RegisterListenerTo("EntityPlaced", "EntitySpawned")
     laserLoop = LoadLoop('MOD/assets/sounds/laser-loop.ogg')
     laserHitLoop = LoadLoop('MOD/assets/sounds/laser-hit-loop.ogg')
 	laserHitSound = LoadSound('OD/assets/sounds/spark0.ogg')
@@ -251,6 +252,11 @@ function Tool:Initialize()
 	breakVaults = GetBool(key..'breakVaults')
 	maxDist = GetInt(key..'maxLaserDist')
 	maxLaserDepth = GetInt(key..'maxRecursion')
+end
+
+-- Detect for deflectors spawned
+function RecieveEvent(file)
+    deflectors = FindBodies('mirror2', true)
 end
 
 function Tool:Animate()
