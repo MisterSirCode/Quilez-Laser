@@ -199,38 +199,38 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
 				if math.random() > 0.5 then
 					Explosion(curPos, 0.1)
 				end
-				-- ParticleReset()
-				-- ParticleColor(0.3, 0.1, 1, 0, 0, 0.5)
-				-- ParticleAlpha(1, 0)
-				-- ParticleRadius(0.05)
-				-- ParticleGravity(-10.0)
-				-- ParticleDrag(0)
-				-- ParticleEmissive(math.random(2, 5), 0, 'easeout')
-				-- ParticleTile(3)
+				ParticleReset()
+				ParticleColor(0.3, 0.1, 1, 0, 0, 0.5)
+				ParticleAlpha(1, 0)
+				ParticleRadius(0.05)
+				ParticleGravity(-10.0)
+				ParticleDrag(0)
+				ParticleEmissive(math.random(2, 5), 0, 'easeout')
+				ParticleTile(3)
 				for i=1, 6 do
 					local ranPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 0.5))
 					MakeHole(ranPos, 0.2, 0.1, 0.1, true)
 					SpawnFire(ranPos)
 					Paint(ranPos, 0.2, 'explosion', 0.5)
-					-- local v = Vec(math.random(-5,5),math.random(-5,5),math.random(-10,5))
-					-- SpawnParticle(ranPos, v, 3)
+					local v = Vec(math.random(-5,5),math.random(-5,5),math.random(-10,5))
+					SpawnParticle(ranPos, v, 3)
 				end
 				for i=1, 8 do
 					local ranPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 2.0))
 					MakeHole(ranPos, 0.1, 0.1, 0, true)
 					SpawnFire(ranPos)
 					Paint(ranPos, 0.1, 'explosion', 0.5)
-					-- local v = Vec(math.random(-5,5),math.random(-5,5),math.random(-10,5))
-					-- ParticleRadius(0.025)
-					-- SpawnParticle(ranPos, v, 3)
+					local v = Vec(math.random(-5,5),math.random(-5,5),math.random(-10,5))
+					ParticleRadius(0.025)
+					SpawnParticle(ranPos, v, 3)
 				end
 				for i=1, 32 do
 					local ranPos = VecAdd(curPos, VecScale(Vec(ultravioletSpan(), ultravioletSpan(), ultravioletSpan()), 4.0))
 					MakeHole(ranPos, 0.1, 0, 0, true)
 					SpawnFire(ranPos)
 					Paint(ranPos, 0.2, 'explosion', 0.5)
-					-- ParticleRadius(0.01)
-					-- SpawnParticle(ranPos, v, 3)
+					ParticleRadius(0.01)
+					SpawnParticle(ranPos, v, 3)
 				end
 			end
 		end
@@ -253,16 +253,11 @@ function Tool:Initialize()
 	if GetInt(key..'laserMode') == 0 then
 		SetInt(key..'laserMode', 1)
 	end
-
-	-- Temporary Debugging
-	SetInt(key..'maxRecursion', 200)
-
 	SetString('game.tool.quilezlaser.ammo.display', '')
 	hitGlass = GetBool(key..'hitGlass')
 	breakVaults = GetBool(key..'breakVaults')
 	maxDist = GetInt(key..'maxLaserDist')
 	maxLaserDepth = GetInt(key..'maxRecursion')
-
 end
 
 -- Detect for deflectors spawned
