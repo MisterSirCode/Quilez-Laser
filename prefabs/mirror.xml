@@ -1,0 +1,9 @@
+<prefab version="1.6.0">
+	<group name="instance=MOD/prefabs/mirror.vox" pos="91.4 41.7 9.1" rot="0.0 0.0 0.0">
+		<body tags="unbreakable mirror" pos="-0.1 0.6 0.6" rot="0 260 90" dynamic="true" desc="loc@LASER_REFLECTOR_DESC">
+			<voxbox pos="-0.6 1.27 -0.53" rot="135 0 0" size="12 17 1" material="glass" color="0 0 0" pbr="0.5 1 0 0"/>
+			<vox rot="0 180 0" file="MOD/prefabs/mirror.vox" object="shape3888"/>
+		</body>
+	</group>
+</prefab>
+

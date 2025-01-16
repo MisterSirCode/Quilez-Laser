@@ -1,0 +1,9 @@
+# Quilez Security items
+MOD/prefabs/deflector.xml : Quilez™ Laser/Classic Quilez Deflector
+MOD/prefabs/mirror.xml : Quilez™ Laser/Classic Quilez Mirror
+
+# Reflectors
+
+# Deflectors
+
+# Emitters

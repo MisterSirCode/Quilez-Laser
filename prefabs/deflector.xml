@@ -1,0 +1,12 @@
+<prefab version="1.6.0">
+	<group name="instance=MOD/prefabs/deflector.xml" pos="0.0 0.0 0.0" rot="0.0 0.0 0.0">
+		<body tags="unbreakable mirror2" pos="-0.177 0.55 -0.346" rot="0 0 0" dynamic="true" desc="loc@LASER_DEFLECTOR_DESC">
+			<script name="emissive tampering" pos="0.0 -0.6 -0.4" file="MOD/prefabs/deflector.lua">
+				<vox tags="deflectorCore" pos="-0.05 0.65 0.5" rot="-90 0 0" density="1.8" file="MOD/prefabs/deflector.vox" object="shape3899">
+					<light pos="0.05 0.05 -0.05" color="1 0.1 0.1 1" size="0.2" reach="4.461" glare="0.4"/>
+				</vox>
+			</script>
+		</body>
+	</group>
+</prefab>
+
