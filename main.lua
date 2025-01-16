@@ -163,9 +163,8 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
                 local newTarget = customRaycast(target.hitpos + reflected * 0.1, reflected, maxDist, 1, not hitGlass)
                 drawLaserRecursive(false, target.hitpos, newTarget, reflected, mode, col, brt, dt, depth + 1, defsHit, defDepth)
             end
-		end
-		if depth > 50 then shouldHit = true end
-        if shouldHit then
+		else
+			-- DebugWatch('Hit at depth-'..depth..' at def-depth-'..defDepth, target.hitpos)
             for i = 1, #vaultDoors do
                 if hitBody.handle == vaultDoors[i] and breakVaults then
                     RemoveTag(vaultDoors[i], 'unbreakable')
@@ -233,6 +232,7 @@ function drawLaserRecursive(innerPos, initPos, target, dir, mode, col, brt, dt, 
 					SpawnParticle(ranPos, v, 3)
 				end
 			end
+			return
 		end
 	else 
 		-- If firing laser at sky... just fire laser... nothing else
@@ -278,10 +278,10 @@ function Tool:Animate()
 		end
 		local target = PLAYER:GetCamera():Raycast(maxDist, -1, 0, not hitGlass)
 		local mode = GetInt(key..'laserMode')
-		if InputPressed('alt') then
+		if InputDown('grab') and InputPressed('usetool') then
 			updateLaserMode()
 		end
-		if InputDown('lmb') then
+		if not InputDown('grab') and InputDown('usetool') then
 			PlayLoop(laserLoop, PLAYER:GetCamera().pos, 2)
 			local col = laserColors[mode]
 			local brt = brightness[mode]
@@ -296,6 +296,7 @@ end
 -- end
 
 function draw()
+	inputDevice = LastInputDevice()
 	local mode = GetInt(key..'laserMode')
 	if GetString('game.player.tool') == 'quilezlaser' then
         UiAlign('center bottom')
@@ -308,7 +309,16 @@ function draw()
         UiText(laserNames[mode])
         UiTranslate(0, 30)
         UiFont('bold.ttf', 16)
-        UiText('Press ALT to Switch Modes')
+		if inputDevice == 2 then
+			UiFont('bold.ttf', 18)
+		end
+		inputGrab = GetString('game.input.grab')
+		inputTool = GetString('game.input.usetool')
+		if inputDevice == 0 then
+        	UiText('Hold Grab and Use Tool to Switch Modes')
+		else
+			UiText('Hold '..inputGrab..' and tap '..inputTool..' to Switch Modes')
+		end
 	end
 end
 
